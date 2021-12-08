@@ -13,6 +13,9 @@ neotile is my fork of the [Tilengine](https://github.com/megamarc/Tilengine) lib
     - i have no way of testing on macOS or other platforms
   - remove the window library (and thus neotile's dependency on SDL2) and make samples use SDL2 directly
     - lol i haven't done this yet
+  - (possibly) reformat the samples
+    - i was never the fan of the "space after function name" thing
+    - i don't intend to reformat the core code to make merging upstream changes less painful
 
 What this fork is NOT:
 
