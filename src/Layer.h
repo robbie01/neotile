@@ -19,14 +19,14 @@
 /* capa */
 typedef struct Layer
 {
-	/* configuraci�n */
+	/* configuración */
 	TLN_Tileset		tileset;	/* pointer to tileset */
 	TLN_Tilemap		tilemap;	/* pointer to tilemap */
 	TLN_Palette		palette;	/* pointer to current pcolor alette */
 	TLN_Bitmap		bitmap;		/* pointer to bitmap (bitmap layer mode) */
 	TLN_ObjectList	objects;	/* pointer to object list (objects layer mode) */
-	int				width;		/* anchura total en p�xeles */
-	int				height;		/* altura total en p�xeles */
+	int				width;		/* anchura total en píxeles */
+	int				height;		/* altura total en píxeles */
 	bool			ok;
 	bool			affine;
 	ScanDrawPtr		draw;
@@ -64,7 +64,7 @@ typedef struct Layer
 	/* mosaic */
 	struct
 	{
-		int w,h;			/* tama�o del pixel */
+		int w,h;			/* tamaño del pixel */
 		uint8_t* buffer;	/* linea temporal */
 	}
 	mosaic;
