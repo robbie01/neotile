@@ -52,6 +52,6 @@ you might also want to check out ninja; the benefits are more negligible because
     cmake -G Ninja ..
     ninja samples/all
 
-you can also build the library and actually use it. not going to give real instructions because i'm not supporting it outside of my own project, but it shouldn't be too hard to integrate.
+you can also build the library and actually use it. not going to give real instructions because i'm not supporting it outside of my own projects, but it shouldn't be too hard to integrate.
 
 also, i've had success running those with fedora 35's `mingw64-cmake` instead of `cmake` proper. additionally, they seem to function under wine, albeit with the aforementioned graphical glitches.
