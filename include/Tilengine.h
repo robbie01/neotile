@@ -46,11 +46,7 @@
 	#endif
 
 #else
-	#ifdef LIB_EXPORTS
-		#define TLNAPI __attribute__((visibility("default")))
-	#else
-		#define TLNAPI
-	#endif
+	#define TLNAPI
 	#include <stdint.h>
 	#include <stdbool.h>
 #endif
@@ -319,7 +315,7 @@ enum
 	CWF_S3			= (3 << 2),	/*!< create a window 3x the size the framebuffer */
 	CWF_S4			= (4 << 2),	/*!< create a window 4x the size the framebuffer */
 	CWF_S5			= (5 << 2),	/*!< create a window 5x the size the framebuffer */
-	CWF_NEAREST		= (1 << 6),	/*<! unfiltered upscaling */
+	CWF_CRT			= (1 << 6),	/*<! CRT effect by default */
 };
 
 /*! Error codes */

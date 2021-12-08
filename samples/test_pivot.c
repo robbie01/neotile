@@ -40,7 +40,7 @@ int main (int argc, char* argv[])
 
 	TLN_LoadWorld("map.tmx", 0);
 
-	TLN_CreateWindow(NULL, CWF_S1 | CWF_NEAREST);
+	TLN_CreateWindow(NULL, CWF_S1);
 	TLN_Delay(2000);
 	while (TLN_ProcessWindow())
 	{

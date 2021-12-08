@@ -1,195 +1,54 @@
-![Tilengine logo](Tilengine.png)
-# Tilengine - The 2D retro graphics engine
-[![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
-[![Build Status](https://travis-ci.org/megamarc/Tilengine.svg?branch=master)](https://travis-ci.org/megamarc/Tilengine)
+# neotile
 
-Tilengine is an open source, cross-platform 2D graphics engine for creating classic/retro games with tile maps, sprites and palettes. Its unique scanline-based rendering algorithm makes raster effects a core feature, a technique used by many games running on real 2D graphics chips.
+neotile is my fork of the [Tilengine](https://github.com/megamarc/Tilengine) library with the goal of making it more readily integrable into large-scale projects. Some plans for this fork:
 
-http://www.tilengine.org
+  - keep in sync with fixes from upstream
+    - we'll wait and see
+  - switch the build system from bespoke makefiles and visual studio projects to CMake
+    - done, i think
+  - remove first class support for visual studio
+    - done
+  - keep it cross-platform
+    - samples run well under wine but with some graphical glitches, I hope it's just a wine issue
+    - i have no way of testing on macOS or other platforms
+  - remove the window library (and thus neotile's dependency on SDL2) and make samples use SDL2 directly
+    - lol i haven't done this yet
 
-# Contents
-- [Tilengine - The 2D retro graphics engine](#tilengine---the-2d-retro-graphics-engine)
-- [Contents](#contents)
-- [Features](#features)
-- [Getting binaries](#getting-binaries)
-  - [Download from itch.io](#download-from-itchio)
-  - [Build from source](#build-from-source)
-    - [Windows](#windows)
-    - [Debian-based linux](#debian-based-linux)
-    - [Apple OSX](#apple-osx)
-- [Running the samples](#running-the-samples)
-  - [Windows](#windows-1)
-  - [Unix-like](#unix-like)
-- [The tilengine window](#the-tilengine-window)
-- [Creating your first program](#creating-your-first-program)
-  - [Windows](#windows-2)
-  - [Linux](#linux)
-  - [Apple OS X](#apple-os-x)
-- [Documentation](#documentation)
-- [Editing assets](#editing-assets)
-- [Creating packages](#creating-packages)
-- [Bindings](#bindings)
-- [Contributors](#contributors)
+What this fork is NOT:
 
-# Features
-* Written in portable C (C99)
-* MPL 2.0 license: free for any project, including commercial ones, allows console development
-* Cross platform: available builds for Windows (32/64), Linux PC(32/64), Mac OS X and Raspberry Pi
-* High performance: all samples run at 60 fps with CRT emulation enabled on a Raspberry Pi 3
-* Streamlined, easy to learn API that requires very little lines of code
-* Built-in SDL-based windowing for quick tests
-* Integrate inside any existing framework as a slave renderer
-* Loads assets from open standard standard file formats
-* Create or modify graphic assets procedurally at run time
-* True raster effects: modify render parameters between scanlines
-* Background layer scaling and rotation
-* Sprite scaling
-* Several blending modes for layers and sprites
-* Pixel accurate sprite vs sprite and sprite vs layer collision detection
-* Special effects: per-column offset, mosaic, per-pixel displacement, CRT emulation...
-* Supports packaged assets with optional AES-128 encryption
+  - a drop-in replacement for Tilengine
+    - though I intend to keep the API consistent with upstream, I also intend on removing functionality that I believe doesn't belong in the library and adds cruft.
+    - you should still be able to migrate a Tilengine project to neotile with only minor modifications if you aren't using the window functions
+  - a dynamic library
+    - Tilengine officially only supports using it as a dynamic library on all of Windows, macOS, and Linux.
+    - i find that, especially if you're dealing with Linux, something like Tilengine/neotile should be statically linked if you intend to keep the game closed-source as it's not in package managers, unlike its primary dependencies of zlib, libpng, and SDL2. therefore, neotile will only support static linking.
+      - this might be helpful for windows or steam as well
+  - something i can give support for
+    - i'll try to help whenever possible, but i'm busy with college and stuff, so i might not be able to help promptly if at all
+      - additionally, since i'm trying to not modify the core code too much, your problem is likely from upstream anyway
+  - something i'm taking money for
+    - donate it to charity or the original developer instead
 
-# Getting binaries
+## Building
 
-## Download from itch.io
-The recommended way to get prebuilt binaries ready to install, run and test samples is grabbing them from official [itch.io download](https://megamarc.itch.io/tilengine.account). Just download the package for your platform, they contain required dependencies to run.
+these worked for me on linux, they might work for you as well
 
-## Build from source
-You can also build the library from source. Tilengine requires `SDL2` and `libpng` to build, you must provide these libraries yourself depending on your target platform.
+    git clone https://github.com/robbie01/neotile.git
+    cd neotile
+    mkdir build
+    cd build
+    cmake -G "Unix Makefiles" ..
+    make -C samples
 
-### Windows
-You must provide development libraries:
-* SDL: https://www.libsdl.org/download-2.0.php
-* libpng: http://gnuwin32.sourceforge.net/packages/libpng.htm
+you might also want to check out ninja; the benefits are more negligible because this is a relatively small c project, but it's still pretty cool just because it's wicked fast
 
-Put the following files inside the `src` directory:
-Path | Files
------|---------------------------------------
-`src\libpng`             | libpng headers
-`src\libpng\$(Platform)` | libpng.lib import library
-`src\sdl\SDL2`           | SDL2 headers
-`src\sdl\lib\$(Platform)`| SDL2.lib import library
+    git clone https://github.com/robbie01/neotile.git
+    cd neotile
+    mkdir build
+    cd build
+    cmake -G Ninja ..
+    ninja samples/all
 
-**NOTE**: If you're having problems setting up these dependencies, you can download them already pre-packaged from [itch.io downloads](https://megamarc.itch.io/tilengine), file is `windows_libs.zip`. It contains headers and libraries for both 32 and 64 bit platforms.
+you can also build the library and actually use it. not going to give real instructions because i'm not supporting it outside of my own project, but it shouldn't be too hard to integrate.
 
-### Debian-based linux
-Just install standard packages `libpng-dev` and `libsdl2-dev`
-
-### Apple OSX
-SDL2 development libraries for OSX can be download here:
-https://www.libsdl.org/download-2.0.php
-
-# Running the samples
-
-C samples are located in `Tilengine/samples` folder. To build them you need the gcc compiler suite, and/or Visual C++ in windows.
-* **Linux**: the GCC compiler suite is already installed by default
-* **Windows**: you must install [MinGW](http://www.mingw.org/) or [Visual Studio Community](https://www.visualstudio.com/vs/community/)
-* **Apple OS X**: You must install [Command-line tools for Xcode](https://developer.apple.com/xcode/). An Apple ID account is required.
-
-Once installed, open a console window in the C samples folder and type the suitable command depending on your platform:
-
-## Windows
-```
-> mingw32-make
-```
-
-## Unix-like
-```
-> make
-```
-
-# The tilengine window
-The following actions can be done in the created window:
-* Press <kbd>Esc</kbd> to close the window
-* Press <kbd>Alt</kbd> + <kbd>Enter</kbd> to toggle full-screen/windowed
-* Press <kbd>Backspace</kbd> to toggle built-in CRT effect (enabled by default)
-
-# Creating your first program
-The following section shows how to create from scratch and execute a simple tilengine application that does the following:
-1. Reference the inclusion of Tilengine module
-2. Initialize the engine with a resolution of 400x240, one layer, no sprites and no palette animations
-3. Load a *tilemap*, the asset that contains background layer data
-4. Attach the loaded tilemap to the allocated background layer
-5. Create a display window with default parameters: windowed, auto scale and CRT effect enabled
-6. Run the window loop, updating the display at each iteration until the window is closed
-7. Release allocated resources
-
-![Test](test.png)
-
-Create a file called `test.c` in `Tilengine/samples` folder, and type the following code:
-```c
-#include "Tilengine.h"
-
-void main(void) {
-    TLN_Tilemap foreground;
-
-    TLN_Init (400, 240, 1, 0, 0);
-    foreground = TLN_LoadTilemap ("assets/sonic/Sonic_md_fg1.tmx", NULL);
-    TLN_SetLayerTilemap (0, foreground);
-
-    TLN_CreateWindow (NULL, 0);
-    while (TLN_ProcessWindow()) {
-        TLN_DrawFrame (0);
-    }
-
-    TLN_DeleteTilemap (foreground);
-    TLN_Deinit ();
-}
-```
-Now the program must be built to produce an executable. Open a console window in the C samples folder and type the suitable command for your platform:
-
-## Windows
-```
-> gcc test.c -o test.exe -I"../include" ../lib/Win32/Tilengine.dll
-> test.exe
-```
-
-## Linux
-```
-> gcc test.c -o test -lTilengine -lm
-> ./test
-```
-
-## Apple OS X
-```
-> gcc test.c -o test "/usr/local/lib/Tilengine.dylib" -lm
-> ./test
-```
-
-# Documentation
-Doxygen-based documentation and API reference can be found in the following link:
-http://www.tilengine.org/doc
-
-# Editing assets
-Tilengine is just a programming library that doesn't come with any editor, but the files it loads are made with standard open-source tools. Samples come bundled with several ready-to-use assets, but these are the tools you'll need to edit or create new ones:
-* Source code: [VSCode](https://code.visualstudio.com/), [Notepad++](https://notepad-plus-plus.org/downloads/)...
-* Graphics, tiles & sprites: [Aseprite](https://www.aseprite.org/), [Piskel](https://www.piskelapp.com/), [Grafx2](http://grafx2.chez.com/)...
-* Maps: [Tiled Map Editor](https://www.mapeditor.org/)
-
-# Creating packages
-To create a package with all the assets, the add-on tool [ResourcePacker](https://megamarc.itch.io/resourcepacker) must be used. It's a Windows command-line tool that creates packages with files keeping the same directory structure. Tilengine has built-in support for loading assets from these packages just as if they still were stand-alone files.
-
-# Bindings
-There are bindings to use Tilengine from several programming languages:
-
-Language  |Binding
-----------|-----------------------------------------
-C/C++     | Native support, no binding required
-Python    | [PyTilengine](https://github.com/megamarc/PyTilengine)
-C#        | [CsTilengine](https://github.com/megamarc/CsTilengine)
-Pascal    | [PascalTileEngine](https://github.com/turric4n/PascalTileEngine)
-FreeBasic | [FBTilengine](https://github.com/megamarc/FBTilengine)
-Java	    | [JTilengine](https://github.com/megamarc/JTilengine)
-Rust      | [tilengine-sys](https://crates.io/crates/tilengine-sys)
-LuaJIT    | [tilengine_libretro](https://github.com/megamarc/Tilengine/tree/libretro) ([libretro](https://www.libretro.com) core)
-Ring      | [RingTilengine](https://github.com/ring-lang/ring/tree/master/extensions/ringtilengine)
-
-# Contributors
-These people contributed to tilengine:
-
-@turric4an - the Pascal wrapper<br>
-@davideGiovannini - help with the Linux-x86_64 port<br>
-@shayneoneill - help with the OS X port<br>
-@adtennant - provided cmake and pkg-config support<br>
-@tvasenin - improved C# binding<br>
-@tyoungjr - LUA/FFI binding<br>
+also, i've had success running those with fedora 35's `mingw64-cmake` instead of `cmake` proper. additionally, they seem to function under wine, albeit with the aforementioned graphical glitches.

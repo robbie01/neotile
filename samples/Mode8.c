@@ -10,11 +10,19 @@
 *
 ******************************************************************************/
 
+/* Mode7.c was always my favorite demo. But why does it use fixed-point math???
+ * The 20th century is long-gone. Computers half as powerful as the cheapest
+ * Chromebook on the market were able to do real-time floating-point math in the
+ * 2000s. Let's bring this demo into the 21st century to make it a bit less scary.
+ */
+
+#define _XOPEN_SOURCE 500
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "Tilengine.h"
-#include "Sin.h"
+#include <math.h>
 
 #define WIDTH	400
 #define HEIGHT	240
@@ -22,14 +30,6 @@
 /* linear interploation */
 #define lerp(x, x0,x1, fx0,fx1) \
 	(fx0) + ((fx1) - (fx0))*((x) - (x0))/((x1) - (x0))
-	
-/* fixed point helper */
-typedef int fix_t;
-#define FIXED_BITS	16
-#define float2fix(f)	(fix_t)(f*(1 << FIXED_BITS))
-#define int2fix(i)		((int)(i) << FIXED_BITS)
-#define fix2int(f)		((int)(f) >> FIXED_BITS)
-#define fix2float(f)	(float)(f)/(1 << FIXED_BITS)
 
 /*
 /* layers */
@@ -51,7 +51,7 @@ int pos_foreground = {0};
 int pos_background[6] = {0};
 int inc_background[6] = {0};
 
-fix_t x,y,s,a;
+float x, y, s, a;
 
 static TLN_Tilemap road, horizon;
 static int angle;
@@ -74,12 +74,11 @@ int main (int argc, char* argv[])
 	/* startup display */
 	TLN_CreateWindow (NULL, 0);
 
-	x = int2fix(-136);
-	y = int2fix(336);
+	x = -136.f;
+	y = 336.f;
 	s = 0;
-	a = float2fix(0.2f);
+	a = 0.2f;
 	angle = 0;
-	BuildSinTable ();
 
 	/* main loop */
 	while (TLN_ProcessWindow ())
@@ -98,19 +97,19 @@ int main (int argc, char* argv[])
 		if (TLN_GetInput (INPUT_UP))
 		{
 			s += a;
-			if (s > int2fix(2))
-				s = int2fix(2);
+			if (s > 2)
+				s = 2;
 		}
-		else if (s >= a)
-			s -= a;
+		else if (s > 0)
+			s -= fminf(s, a);
 		if (TLN_GetInput (INPUT_DOWN))
 		{
 			s -= a;
-			if (s < -int2fix(2))
-				s = -int2fix(2);
+			if (s < -2)
+				s = -2;
 		}
-		else if (s <= -a)
-			s += a;
+		else if (s < 0)
+			s -= fmaxf(s, -a);
 
 		if (s != 0)
 		{
@@ -118,8 +117,8 @@ int main (int argc, char* argv[])
 			if (angle < 0)
 				angle += 360;
 
-			x += CalcSin (angle, s);
-			y -= CalcCos (angle, s);
+			x += sinf(angle*M_PI/180.f)*s;
+			y -= cosf(angle*M_PI/180.f)*s;
 		}
 
 		/* render to window */
@@ -140,16 +139,13 @@ static void raster_callback (int line)
 	if (line == 24)
 	{
 		TLN_SetLayerTilemap (LAYER_BACKGROUND, road);
-		TLN_SetLayerPosition (LAYER_BACKGROUND, fix2int(x), fix2int(y));
+		TLN_SetLayerPosition (LAYER_BACKGROUND, (int)roundf(x), (int)roundf(y));
 		TLN_DisableLayer (LAYER_FOREGROUND);
 	}
 
 	if (line >= 24)
 	{
-		fix_t s0 = float2fix (0.2f);
-		fix_t s1 = float2fix (5.0f);
-		fix_t s = lerp (line, 24,HEIGHT, s0,s1);
-		float scale = fix2float (s);
+		float scale = lerp(line, 24, HEIGHT, 0.2f, 5.0f);
 		TLN_SetLayerTransform (LAYER_BACKGROUND, (float)angle, WIDTH/2, HEIGHT, scale, scale);
 	}
 }

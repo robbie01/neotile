@@ -419,7 +419,7 @@ bool TLN_CreateWindow (const char* overlay, int flags)
 		wnd_params.file_overlay[MAX_PATH - 1] = '\0';
 	}
 
-	crt_enable = (wnd_params.flags & CWF_NEAREST) == 0;
+	crt_enable = (wnd_params.flags & CWF_CRT) != 0;
 	ok = CreateWindow ();
 	if (ok)
 		instances++;
@@ -476,7 +476,7 @@ bool TLN_CreateWindowThread (const char* overlay, int flags)
 		wnd_params.file_overlay[MAX_PATH - 1] = '\0';
 	}
 
-	crt_enable = (wnd_params.flags & CWF_NEAREST) == 0;
+	crt_enable = (wnd_params.flags & CWF_CRT) != 0;
 	lock = SDL_CreateMutex ();
 	cond = SDL_CreateCond ();
 
@@ -1184,7 +1184,7 @@ static void hblur (uint8_t* scan, int width, int height, int pitch)
 	}
 }
 
-/* resample rápido dividio 2 */
+/* resample rï¿½pido dividio 2 */
 static void Downsample2 (uint8_t* src, uint8_t* dst, int width, int height, int src_pitch, int dst_pitch)
 {
 	uint8_t* src_pixel;
