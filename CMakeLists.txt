@@ -6,17 +6,10 @@ endif()
 
 project(neotile C)
 
-set(CMAKE_INSTALL_LIBDIR lib64)
-
 add_subdirectory(src lib)
 add_subdirectory(samples EXCLUDE_FROM_ALL)
 
-set_target_properties(neotile PROPERTIES PUBLIC_HEADER "include/Tilengine.h")
 install(
     TARGETS neotile
     EXPORT neotile
-)
-install (
-    EXPORT neotile
-    DESTINATION lib64/neotile
 )

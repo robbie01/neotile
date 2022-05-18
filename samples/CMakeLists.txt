@@ -1,5 +1,3 @@
-include_directories(${neotile_SOURCE_DIR}/include)
-
 add_executable(barrel Barrel.c Simon.c)
 add_executable(mode7 Mode7.c Sin.c)
 add_executable(mode8 Mode8.c)
@@ -21,8 +19,11 @@ add_executable(test_pivot test_pivot.c)
 
 get_directory_property(execs BUILDSYSTEM_TARGETS)
 foreach(exec ${execs})
-    set_target_properties(${exec} PROPERTIES C_STANDARD 99)
+    set_target_properties(${exec} PROPERTIES C_STANDARD 99 C_EXTENSIONS OFF)
     target_link_libraries(${exec} neotile)
 endforeach()
+
+find_package(SDL2 REQUIRED)
+target_link_libraries(test_mouse SDL2::SDL2)
 
 file(COPY assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include "Tilengine.h"
 #define _STDINT_H_
-#include "SDL2/SDL_events.h"
+#include "SDL_events.h"
 
 #define WIDTH			400
 #define HEIGHT			240

@@ -14,7 +14,7 @@
 #define INPUT_MASK	(MAX_INPUTS - 1)
 
 #include <string.h>
-#include "SDL2/SDL.h"
+#include "SDL.h"
 #include "Tilengine.h"
 #include "Tables.h"
 
