@@ -13,9 +13,11 @@ add_executable(benchmark Benchmark.c)
 add_executable(supermarioclone SuperMarioClone.c)
 add_executable(test_mouse TestMouse.c)
 add_executable(forest Forest.c)
+add_executable(querylayer QueryLayer.c)
 
 add_executable(test_linescroll test_linescroll.c)
 add_executable(test_pivot test_pivot.c)
+add_executable(test_pauseanimation test_pauseanimation.c)
 
 add_subdirectory(window)
 
