@@ -2,6 +2,7 @@
 #define _ACTOR_H
 
 #include "Tilengine.h"
+#include "Window.h"
 
 typedef struct
 {

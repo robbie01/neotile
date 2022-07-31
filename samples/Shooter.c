@@ -15,6 +15,7 @@
 #include <string.h>
 #include "Shooter.h"
 #include "Tilengine.h"
+#include "Window.h"
 #include "Boss.h"
 #include "Explosion.h"
 #include "Enemy.h"

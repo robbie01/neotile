@@ -401,33 +401,6 @@ TLNAPI const char *TLN_GetErrorString (TLN_Error error);
 /**@}*/
 
 /**
- * \defgroup windowing
- * \brief Built-in window and input management
-* @{ */
-TLNAPI bool TLN_CreateWindow (const char* overlay, int flags);
-TLNAPI bool TLN_CreateWindowThread (const char* overlay, int flags);
-TLNAPI void TLN_SetWindowTitle (const char* title);
-TLNAPI bool TLN_ProcessWindow (void);
-TLNAPI bool TLN_IsWindowActive (void);
-TLNAPI bool TLN_GetInput (TLN_Input id);
-TLNAPI void TLN_EnableInput (TLN_Player player, bool enable);
-TLNAPI void TLN_AssignInputJoystick (TLN_Player player, int index);
-TLNAPI void TLN_DefineInputKey (TLN_Player player, TLN_Input input, uint32_t keycode);
-TLNAPI void TLN_DefineInputButton (TLN_Player player, TLN_Input input, uint8_t joybutton);
-TLNAPI void TLN_DrawFrame (int frame);
-TLNAPI void TLN_WaitRedraw (void);
-TLNAPI void TLN_DeleteWindow (void);
-TLNAPI void TLN_EnableBlur (bool mode);
-TLNAPI void TLN_EnableCRTEffect (TLN_Overlay overlay, uint8_t overlay_factor, uint8_t threshold, uint8_t v0, uint8_t v1, uint8_t v2, uint8_t v3, bool blur, uint8_t glow_factor);
-TLNAPI void TLN_DisableCRTEffect (void);
-TLNAPI void TLN_SetSDLCallback(TLN_SDLCallback);
-TLNAPI void TLN_Delay (uint32_t msecs);
-TLNAPI uint32_t TLN_GetTicks (void);
-TLNAPI int TLN_GetWindowWidth(void);
-TLNAPI int TLN_GetWindowHeight(void);
-/**@}*/
-
-/**
  * \defgroup spriteset
  * \brief Spriteset resources management for sprites
 * @{ */

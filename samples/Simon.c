@@ -1,4 +1,5 @@
 #include "Tilengine.h"
+#include "Window.h"
 #include "Simon.h"
 
 typedef enum

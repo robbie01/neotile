@@ -20,7 +20,7 @@ RGBQuad;
 static void hblur (uint8_t* src, uint8_t* dst, int width, int height, int pitch, int radius);
 static void vblur (uint8_t* src, uint8_t* dst, int width, int height, int pitch, int radius);
 
-void GaussianBlur (uint8_t* src, uint8_t* dst, int width, int height, int pitch, int radius)
+void TLN_GaussianBlur (uint8_t* src, uint8_t* dst, int width, int height, int pitch, int radius)
 {
 	int c;
 
@@ -132,7 +132,7 @@ static void vblur (uint8_t* src, uint8_t* dst, int width, int height, int pitch,
 			pixel_add += width;
 		}
 
-		/* medio radio en la izquerda: sólo suma */
+		/* medio radio en la izquerda: sï¿½lo suma */
 		for (c=0; c<half_radius; c++)
 		{
 			pixel_mid->r = sum[0] / radius;
@@ -159,7 +159,7 @@ static void vblur (uint8_t* src, uint8_t* dst, int width, int height, int pitch,
 			pixel_sub += width;
 		}
 
-		/* medio radio en la derecha: sólo resta */
+		/* medio radio en la derecha: sï¿½lo resta */
 		for (; c<height; c++)
 		{
 			pixel_mid->r = sum[0] / radius;

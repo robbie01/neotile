@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Tilengine.h"
+#include "Window.h"
 
 #define WIDTH	400
 #define HEIGHT	240

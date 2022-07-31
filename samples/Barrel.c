@@ -15,6 +15,7 @@
 #include <string.h>
 #include <math.h>
 #include "Tilengine.h"
+#include "Window.h"
 #include "Simon.h"
 
 #define WIDTH	400

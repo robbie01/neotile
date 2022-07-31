@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Tilengine.h"
+#include "Window.h"
 
 #define HRES		400
 #define VRES		240

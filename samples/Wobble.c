@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Tilengine.h"
+#include "Window.h"
 #include "Sin.h"
 
 #define WIDTH	320

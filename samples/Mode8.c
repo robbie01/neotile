@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Tilengine.h"
+#include "Window.h"
 #include <math.h>
 
 #define WIDTH	400

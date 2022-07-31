@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include "Tilengine.h"
+#include "Window.h"
 #define _STDINT_H_
 #include "SDL_events.h"
 

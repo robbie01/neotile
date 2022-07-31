@@ -8,6 +8,7 @@
 ******************************************************************************/
 
 #include "Tilengine.h"
+#include "Window.h"
 
 #define HRES	424
 #define VRES	240

@@ -8,7 +8,6 @@
 * file, You can obtain one at http://mozilla.org/MPL/2.0/.
 * */
 
-#ifndef TLN_EXCLUDE_WINDOW
 #define MAX_PLAYERS	4		/* number of unique players */
 #define MAX_INPUTS	32		/* number of inputs per player */
 #define INPUT_MASK	(MAX_INPUTS - 1)
@@ -16,7 +15,9 @@
 #include <string.h>
 #include "SDL.h"
 #include "Tilengine.h"
-#include "Tables.h"
+#include "Window.h"
+
+#define blendfunc(t,a,b) *(t  + ((a)<<8) + (b))
 
 /* linear interploation */
 #define lerp(x, x0,x1, fx0,fx1) \
@@ -136,9 +137,17 @@ static void hblur (uint8_t* scan, int width, int height, int pitch);
 static void Downsample2 (uint8_t* src, uint8_t* dst, int width, int height, int src_pitch, int dst_pitch);
 static void BuildFullOverlay (SDL_Texture* texture, SDL_Surface* pattern, uint8_t factor);
 static void EnableCRTEffect (void);
+static bool IsWindowActive (void);
+static void EnableInput (TLN_Player player, bool enable);
+static void AssignInputJoystick (TLN_Player player, int index);
+static void DefineInputKey (TLN_Player player, TLN_Input input, uint32_t keycode);
+static void DefineInputButton (TLN_Player player, TLN_Input input, uint8_t joybutton);
+
+static void TLN_EnableCRTEffect (TLN_Overlay overlay, uint8_t overlay_factor, uint8_t threshold, uint8_t v0, uint8_t v1, uint8_t v2, uint8_t v3, bool blur, uint8_t glow_factor);
+static void TLN_DisableCRTEffect (void);
 
 /* external prototypes */
-void GaussianBlur (uint8_t* src, uint8_t* dst, int width, int height, int pitch, int radius);
+void TLN_GaussianBlur (uint8_t* src, uint8_t* dst, int width, int height, int pitch, int radius);
 
 #ifndef _MSC_VER
 extern char* strdup(const char* s);
@@ -253,29 +262,29 @@ static bool CreateWindow(void)
 	if (init == false)
 	{
 		/* Default input PLAYER 1 */
-		TLN_EnableInput(PLAYER1, true);
-		TLN_DefineInputKey(PLAYER1, INPUT_UP, SDLK_UP);
-		TLN_DefineInputKey(PLAYER1, INPUT_DOWN, SDLK_DOWN);
-		TLN_DefineInputKey(PLAYER1, INPUT_LEFT, SDLK_LEFT);
-		TLN_DefineInputKey(PLAYER1, INPUT_RIGHT, SDLK_RIGHT);
-		TLN_DefineInputKey(PLAYER1, INPUT_BUTTON1, SDLK_z);
-		TLN_DefineInputKey(PLAYER1, INPUT_BUTTON2, SDLK_x);
-		TLN_DefineInputKey(PLAYER1, INPUT_BUTTON3, SDLK_c);
-		TLN_DefineInputKey(PLAYER1, INPUT_BUTTON4, SDLK_v);
-		TLN_DefineInputKey(PLAYER1, INPUT_START, SDLK_RETURN);
-		TLN_DefineInputKey(PLAYER1, INPUT_QUIT, SDLK_ESCAPE);
-		TLN_DefineInputKey(PLAYER1, INPUT_CRT, SDLK_BACKSPACE);
+		EnableInput(PLAYER1, true);
+		DefineInputKey(PLAYER1, INPUT_UP, SDLK_UP);
+		DefineInputKey(PLAYER1, INPUT_DOWN, SDLK_DOWN);
+		DefineInputKey(PLAYER1, INPUT_LEFT, SDLK_LEFT);
+		DefineInputKey(PLAYER1, INPUT_RIGHT, SDLK_RIGHT);
+		DefineInputKey(PLAYER1, INPUT_BUTTON1, SDLK_z);
+		DefineInputKey(PLAYER1, INPUT_BUTTON2, SDLK_x);
+		DefineInputKey(PLAYER1, INPUT_BUTTON3, SDLK_c);
+		DefineInputKey(PLAYER1, INPUT_BUTTON4, SDLK_v);
+		DefineInputKey(PLAYER1, INPUT_START, SDLK_RETURN);
+		DefineInputKey(PLAYER1, INPUT_QUIT, SDLK_ESCAPE);
+		DefineInputKey(PLAYER1, INPUT_CRT, SDLK_BACKSPACE);
 
 		/* joystick */
 		if (SDL_NumJoysticks() > 0)
 		{
 			SDL_JoystickEventState(SDL_ENABLE);
-			TLN_AssignInputJoystick(PLAYER1, 0);
-			TLN_DefineInputButton(PLAYER1, INPUT_BUTTON1, 1);
-			TLN_DefineInputButton(PLAYER1, INPUT_BUTTON2, 0);
-			TLN_DefineInputButton(PLAYER1, INPUT_BUTTON3, 2);
-			TLN_DefineInputButton(PLAYER1, INPUT_BUTTON4, 3);
-			TLN_DefineInputButton(PLAYER1, INPUT_START, 5);
+			AssignInputJoystick(PLAYER1, 0);
+			DefineInputButton(PLAYER1, INPUT_BUTTON1, 1);
+			DefineInputButton(PLAYER1, INPUT_BUTTON2, 0);
+			DefineInputButton(PLAYER1, INPUT_BUTTON3, 2);
+			DefineInputButton(PLAYER1, INPUT_BUTTON4, 3);
+			DefineInputButton(PLAYER1, INPUT_START, 5);
 		}
 		init = true;
 	}
@@ -322,27 +331,6 @@ static void DeleteWindow (void)
 	}
 }
 
-/*!
- * \brief
- * Sets window title
- * 
- * \param title
- * Text with the title to set
- * 
- */
-void TLN_SetWindowTitle (const char* title)
-{
-	if (window != NULL)
-		SDL_SetWindowTitle (window, title);
-	if (window_title != NULL)
-	{
-		free(window_title);
-		window_title = NULL;
-	}
-	if (title != NULL)
-		window_title = strdup(title);
-}
-
 static int WindowThread (void* data)
 {
 	bool ok;
@@ -357,7 +345,7 @@ static int WindowThread (void* data)
 	}
 
 	/* main loop */
-	while (TLN_IsWindowActive())
+	while (IsWindowActive())
 	{
 		SDL_LockMutex (lock);
 		TLN_DrawFrame (0);
@@ -421,75 +409,6 @@ bool TLN_CreateWindow (const char* overlay, int flags)
 
 	crt_enable = (wnd_params.flags & CWF_CRT) != 0;
 	ok = CreateWindow ();
-	if (ok)
-		instances++;
-	return ok;
-}
-
-/*!
- * \brief
- * Creates a multithreaded window for rendering
- * 
- * \param overlay
- * Optional path of a bmp file to overlay (for emulating RGB mask, scanlines, etc)
- * 
- * \param flags
- * Mask of the possible creation flags:
- * CWF_FULLSCREEN, CWF_VSYNC, CWF_S1 - CWF_S5 (scaling factor, none = auto max)
- * 
- * \returns
- * True if window was created or false if error
- * 
- * Creates a host window with basic user input for tilengine. If fullscreen, it uses the desktop
- * resolution and stretches the output resolution with aspect correction, letterboxing or pillarboxing
- * as needed. If windowed, it creates a centered window that is the maximum possible integer multiply of
- * the resolution configured at TLN_Init()
- * 
- * \remarks
- * Unlike TLN_CreateWindow, This window runs in its own thread
- * 
- * \see
- * TLN_DeleteWindow(), TLN_IsWindowActive(), TLN_GetInput(), TLN_UpdateFrame()
- */
-bool TLN_CreateWindowThread (const char* overlay, int flags)
-{
-	bool ok;
-
-	/* allow single instance */
-	if (instances)
-	{
-		instances++;
-		return true;
-	}
-
-	if (SDL_Init (SDL_INIT_VIDEO|SDL_INIT_JOYSTICK) != 0)
-		return false;
-
-	/* fill parameters for window creation */
-	wnd_params.retval = 0;
-	wnd_params.width = TLN_GetWidth ();
-	wnd_params.height = TLN_GetHeight ();
-	wnd_params.flags = flags|CWF_VSYNC;
-	if (overlay)
-	{
-		strncpy (wnd_params.file_overlay, overlay, MAX_PATH);
-		wnd_params.file_overlay[MAX_PATH - 1] = '\0';
-	}
-
-	crt_enable = (wnd_params.flags & CWF_CRT) != 0;
-	lock = SDL_CreateMutex ();
-	cond = SDL_CreateCond ();
-
-	/* init thread & wait window creation result */
-	thread = SDL_CreateThread (WindowThread, "WindowThread", &wnd_params);
-	while (wnd_params.retval == 0)
-		SDL_Delay (10);
-
-	if (wnd_params.retval == 1)
-		return true;
-	else
-		return false;
-
 	if (ok)
 		instances++;
 	return ok;
@@ -704,7 +623,7 @@ bool TLN_ProcessWindow (void)
 	if (done)
 		TLN_DeleteWindow ();
 
-	return TLN_IsWindowActive ();
+	return IsWindowActive ();
 }
 
 /*!
@@ -718,38 +637,9 @@ bool TLN_ProcessWindow (void)
  * \see
  * TLN_CreateWindow(), TLN_CreateWindowThread()
  */
-bool TLN_IsWindowActive (void)
+static bool IsWindowActive (void)
 {
 	return !done;
-}
-
-/*!
- * \brief
- * Thread synchronization for multithreaded window. Waits until the current
- * frame has ended rendering
- *
- * \see
- * TLN_CreateWindowThread()
- */
-void TLN_WaitRedraw (void)
-{
-	if (lock)
-	{
-		SDL_LockMutex (lock);
-		SDL_CondWait (cond, lock);
-		SDL_UnlockMutex (lock);
-	}
-}
-
-/*!
- * \brief
- * Removed in release 1.12, use TLN_EnableCRTEffect() instead
- * 
- * \param mode
- * Enable or disable effect
- */
-void TLN_EnableBlur (bool mode)
-{
 }
 
 /*!
@@ -794,7 +684,7 @@ void TLN_EnableBlur (bool mode)
  * \see
  * TLN_CreateWindow(),TLN_DisableCRTEffect()
  */ 
-void TLN_EnableCRTEffect (TLN_Overlay overlay, uint8_t overlay_factor, uint8_t threshold, uint8_t v0, uint8_t v1, uint8_t v2, uint8_t v3, bool blur, uint8_t glow_factor)
+static void TLN_EnableCRTEffect (TLN_Overlay overlay, uint8_t overlay_factor, uint8_t threshold, uint8_t v0, uint8_t v1, uint8_t v2, uint8_t v3, bool blur, uint8_t glow_factor)
 {
 	int c;
 
@@ -845,7 +735,7 @@ void TLN_EnableCRTEffect (TLN_Overlay overlay, uint8_t overlay_factor, uint8_t t
  * \see
  * TLN_EnableCRTEffect()
  */ 
-void TLN_DisableCRTEffect (void)
+static void TLN_DisableCRTEffect (void)
 {
 	/* create framebuffer texture with neartest */
 	if (backbuffer != NULL)
@@ -916,7 +806,7 @@ bool TLN_GetInput (TLN_Input input)
  * \param enable
  * Set true to enable, false to disable
  */
-void TLN_EnableInput (TLN_Player player, bool enable)
+static void EnableInput (TLN_Player player, bool enable)
 {
 	player_inputs[player].enabled = enable;
 }
@@ -931,7 +821,7 @@ void TLN_EnableInput (TLN_Player player, bool enable)
  * \param index
  * Joystick index to assign, 0-based index. -1 = disable
  */
-void TLN_AssignInputJoystick (TLN_Player player, int index)
+static void AssignInputJoystick (TLN_Player player, int index)
 {
 	PlayerInput* player_input = &player_inputs[player];
 	if (player_input->joy != NULL)
@@ -959,7 +849,7 @@ void TLN_AssignInputJoystick (TLN_Player player, int index)
  * \param keycode
  * ASCII key value or scancode as defined in SDL.h
  */
-void TLN_DefineInputKey (TLN_Player player, TLN_Input input, uint32_t keycode)
+static void DefineInputKey (TLN_Player player, TLN_Input input, uint32_t keycode)
 {
 	player_inputs[player].keycodes[input & INPUT_MASK] = keycode;
 }
@@ -977,23 +867,9 @@ void TLN_DefineInputKey (TLN_Player player, TLN_Input input, uint32_t keycode)
  * \param joybutton
  * Button index
  */
-void TLN_DefineInputButton (TLN_Player player, TLN_Input input, uint8_t joybutton)
+static void DefineInputButton (TLN_Player player, TLN_Input input, uint8_t joybutton)
 {
 	player_inputs[player].joybuttons[input & INPUT_MASK] = joybutton;
-}
-
-/*!
- * \brief
- * Returns the last pressed input button
- * 
- * \see
- * TLN_GetInput()
- */
-int TLN_GetLastInput (void)
-{
-	int retval = last_key;
-	last_key = INPUT_NONE;
-	return retval;
 }
 
 static void BeginWindowFrame (void)
@@ -1018,7 +894,7 @@ static void EndWindowFrame (void)
 
 		/* apply gaussian blur (opitional) */
 		if (crt.gaussian)
-			GaussianBlur (pixels_glow, (uint8_t*)crt.blur->pixels, dst_width,dst_height,pitch_glow, 2);
+			TLN_GaussianBlur (pixels_glow, (uint8_t*)crt.blur->pixels, dst_width,dst_height,pitch_glow, 2);
 
 		SDL_UnlockTexture (crt.glow);
 	}
@@ -1120,9 +996,19 @@ static void BuildFullOverlay (SDL_Texture* texture, SDL_Surface* pattern, uint8_
 	SDL_Surface* dst_surface;
 	SDL_Rect rect;
 	uint8_t* pixels = NULL;
-	uint8_t* add_table = SelectBlendTable (BLEND_ADD);
+	static uint8_t* add_table = NULL;
 	int pitch = 0;
 	int x,y;
+
+	if (!add_table) {
+		add_table = malloc(65536);
+		for (int a = 0; a < 256; ++a) {
+			for (int b = 0; b < 256; ++b) {
+				uint16_t sum = a + b;
+				add_table[(a<<8)|b] = sum > 255 ? 255 : sum;
+			}
+		}
+	}
 
 	/* create auxiliar surfaces */
 	src_surface = SDL_CreateRGBSurface (0, pattern->w, pattern->h, 32, 0,0,0,0);
@@ -1234,5 +1120,3 @@ static void Downsample2 (uint8_t* src, uint8_t* dst, int width, int height, int 
 		}
 	}
 }
-
-#endif

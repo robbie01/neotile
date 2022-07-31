@@ -2,6 +2,7 @@
 #define _SHOOTER_H
 
 #include "Tilengine.h"
+#include "Window.h"
 #include "Sin.h"
 #include "Actor.h"
 

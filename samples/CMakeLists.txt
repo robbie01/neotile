@@ -17,10 +17,12 @@ add_executable(forest Forest.c)
 add_executable(test_linescroll test_linescroll.c)
 add_executable(test_pivot test_pivot.c)
 
+add_subdirectory(window)
+
 get_directory_property(execs BUILDSYSTEM_TARGETS)
 foreach(exec ${execs})
     set_target_properties(${exec} PROPERTIES C_STANDARD 99 C_EXTENSIONS OFF)
-    target_link_libraries(${exec} neotile)
+    target_link_libraries(${exec} neotile Window)
 endforeach()
 
 find_package(SDL2 REQUIRED)

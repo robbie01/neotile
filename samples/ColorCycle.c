@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "Tilengine.h"
+#include "Window.h"
 
 int main (int argc, char* argv[])
 {
